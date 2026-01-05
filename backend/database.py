@@ -65,12 +65,11 @@ def save_search_history(
     raise ValueError("データの保存に失敗しました")
 
 
-def get_user_search_history(user_id: str, limit: int = 20) -> list[dict]:
+def get_all_search_history(limit: int = 20) -> list[dict]:
     """
-    ユーザーの検索履歴を取得
+    全ての検索履歴を取得（共有表示用）
     
     Args:
-        user_id: ユーザーID
         limit: 取得件数上限
         
     Returns:
@@ -81,7 +80,6 @@ def get_user_search_history(user_id: str, limit: int = 20) -> list[dict]:
     result = (
         client.table("search_history")
         .select("id, created_at, target_url, raw_data, title")
-        .eq("user_id", user_id)
         .order("created_at", desc=True)
         .limit(limit)
         .execute()
@@ -90,13 +88,12 @@ def get_user_search_history(user_id: str, limit: int = 20) -> list[dict]:
     return result.data or []
 
 
-def get_search_history_by_id(history_id: str, user_id: str) -> Optional[dict]:
+def get_search_history_by_id(history_id: str) -> Optional[dict]:
     """
-    特定の検索履歴を取得
+    特定の検索履歴を取得（全ユーザー共有）
     
     Args:
         history_id: 検索履歴ID
-        user_id: ユーザーID（権限チェック用）
         
     Returns:
         検索履歴データ、見つからない場合はNone
@@ -107,7 +104,6 @@ def get_search_history_by_id(history_id: str, user_id: str) -> Optional[dict]:
         client.table("search_history")
         .select("*")
         .eq("id", history_id)
-        .eq("user_id", user_id)
         .single()
         .execute()
     )

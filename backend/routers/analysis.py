@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel, HttpUrl
 
 from scraper import scrape_hpb_url, scrape_multiple_pages
-from database import save_search_history, get_user_search_history, get_search_history_by_id, delete_search_history
+from database import save_search_history, get_all_search_history, get_search_history_by_id, delete_search_history
 
 router = APIRouter(prefix="/api", tags=["analysis"])
 
@@ -128,7 +128,7 @@ async def get_history(
         raise HTTPException(status_code=401, detail="X-User-Id ヘッダーが必要です")
     
     try:
-        histories = get_user_search_history(x_user_id, limit)
+        histories = get_all_search_history(limit)
         
         return [
             HistoryItem(
@@ -163,7 +163,7 @@ async def get_history_detail(
         raise HTTPException(status_code=401, detail="X-User-Id ヘッダーが必要です")
     
     try:
-        history = get_search_history_by_id(history_id, x_user_id)
+        history = get_search_history_by_id(history_id)
         
         if not history:
             raise HTTPException(status_code=404, detail="履歴が見つかりません")
