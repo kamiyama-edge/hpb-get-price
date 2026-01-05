@@ -1,0 +1,15 @@
+# ルート用の.gitignore
+node_modules/
+.next/
+out/
+build/
+dist/
+.env*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+.vercel
+/supabase/.temp/
