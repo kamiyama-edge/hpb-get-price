@@ -41,6 +41,8 @@ export default function DashboardPage() {
     const [analyzing, setAnalyzing] = useState(false)
     const [serverWaking, setServerWaking] = useState(false)
     const [history, setHistory] = useState<HistoryItem[]>([])
+    const [historyLoading, setHistoryLoading] = useState(false)
+    const [historyWaking, setHistoryWaking] = useState(false)
     const [deletingId, setDeletingId] = useState<string | null>(null)
 
     // 認証チェック
@@ -73,12 +75,24 @@ export default function DashboardPage() {
 
     // 履歴取得
     const fetchHistory = async (userId: string) => {
+        setHistoryLoading(true)
+        setHistoryWaking(false)
+
+        // 3秒経過してもレスポンスがない場合はサーバー起動中とみなす
+        const wakingTimer = setTimeout(() => {
+            setHistoryWaking(true)
+        }, 3000)
+
         try {
             const data = await getHistory(userId)
             setHistory(data || [])
         } catch (error) {
             console.log('履歴取得:', error)
             setHistory([])
+        } finally {
+            clearTimeout(wakingTimer)
+            setHistoryLoading(false)
+            setHistoryWaking(false)
         }
     }
 
@@ -227,7 +241,25 @@ export default function DashboardPage() {
                         )}
                     </div>
 
-                    {history.length === 0 ? (
+                    {historyLoading && history.length === 0 ? (
+                        <Card className="border-none shadow-sm ring-1 ring-slate-200 bg-white">
+                            <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                                <Loader2 className="w-10 h-10 animate-spin text-emerald-600 mb-4" />
+                                <p className="text-slate-600 font-bold">履歴を読み込み中...</p>
+                                {historyWaking && (
+                                    <div className="mt-4 p-4 bg-amber-50 rounded-2xl border border-amber-100 max-w-md animate-pulse">
+                                        <p className="text-amber-800 text-sm font-bold flex items-center justify-center gap-2">
+                                            <Info className="w-4 h-4" />
+                                            サーバーを起動しています
+                                        </p>
+                                        <p className="text-amber-600 text-[10px] mt-1">
+                                            しばらく使用されていなかったため、再起動に最大1分ほどかかる場合があります。
+                                        </p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    ) : history.length === 0 ? (
                         <Card className="border-dashed border-2 bg-slate-50/50">
                             <CardContent className="flex flex-col items-center justify-center py-20 text-center">
                                 <div className="p-4 bg-white rounded-2xl shadow-sm mb-4">
